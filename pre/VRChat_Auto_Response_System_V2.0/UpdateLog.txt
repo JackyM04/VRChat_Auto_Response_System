@@ -1,0 +1,16 @@
+2022/12/10 V2:
+Fixed bug: The program gets stuck when there is only one sentence.
+Changed the format of config file, easier to add sentence.
+old:
+1_sen: I'm AFK-ing...
+2_sen: stop touching my head!!!
+3_sen: qweqweqwe
+4_sen: "123"
+5_sen: "asdasda.qwe"
+new:
+sen_t: 
+- I'm AFK-ing...
+- stop touching my head!!!
+- qweqweqwe
+- "123"
+- "asdasda,qwe"

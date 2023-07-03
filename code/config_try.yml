@@ -1,0 +1,29 @@
+#you can set up many sentences here 
+#!must follow my format! 
+#!When there are punctuation marks or numbers in the sentence, 
+#   you need to add "" at the beginning and end of the sentence!
+
+#prameter:
+#- sentences
+#- sentences
+#- "123"
+#- "word,word"
+#- word word word
+#
+
+Gun_Left:
+- test b
+- test:d
+cl:
+- test:e
+- test:f
+Heartrate_sw:
+- test:g
+- test:h
+VelocityX:
+- test:y
+- test:z
+head_touch: 
+- 你他妈摸我头是吧
+- MD天天摸我头
+- 摸摸摸天天摸
