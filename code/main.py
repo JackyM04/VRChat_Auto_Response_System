@@ -158,5 +158,6 @@ class main:
         self.ball()
         self.send_main()
 
-mm = main()
-mm.start()
+if __name__ == "__main__":
+    mm = main()
+    mm.start()

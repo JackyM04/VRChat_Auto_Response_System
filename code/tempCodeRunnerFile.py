@@ -1,2 +1,2 @@
-
-            print(dec)
+    mm = main()
+    mm.start()
