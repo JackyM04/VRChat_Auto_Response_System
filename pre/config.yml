@@ -1,3 +1,4 @@
+
 #you can set up many sentences and parameter here 
 #!must follow my format! 
 #!When there are punctuation marks or numbers in the sentence, 
@@ -9,13 +10,9 @@
 #- "123"
 #- "word,word"
 #- word word word
-#parameter2(your avatar):
-#- sentences
-#- sentences
-#- "123"
-#- "word,word"
-#- word word word
+#
 
 head_touch: 
 - I'm AFK-ing...
 - I'm AFK-ing......
+                

@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['C:\\Users\\32607\\Desktop\\avatar\\ARSv3\\pre\\main.py'],
+    ['C:\\Users\\32607\\Desktop\\VRChat_Auto_Response_System\\pre\\main.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -41,5 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='C:\\Users\\32607\\Desktop\\avatar\\ARSv3\\pre\\favicon.ico',
+    icon=['C:\\Users\\32607\\Desktop\\VRChat_Auto_Response_System\\pre\\favicon.ico'],
 )

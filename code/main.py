@@ -1,163 +1,136 @@
 import yaml
 import os
 import sys
-import random
-import argparse
-import pyOSC3
-import time
-from pythonosc import dispatcher
+from random import randint
+import threading
+from pythonosc import dispatcher as dp
 from pythonosc import osc_server
 from pythonosc import udp_client
-class main:
+
+
+class Osc_processer:
     
-    def load_configFile(self):
-        configAdd = f"{os.path.dirname(os.path.realpath(sys.argv[0]))}/config_try.yml"
-        configOpen = open(configAdd, 'r', encoding='utf-8')
-        configRead = configOpen.read()
-        self.configFile = yaml.load(configRead, Loader=yaml.SafeLoader)
+    def __init__(self, avater_parameters: str, sentences_list: list, client, dispatcher):
+        self.avater_parameters = avater_parameters
+        self.sentences_list = sentences_list
+        self.client = client
+        self.dispatcher = dispatcher
+        self.ran_lasttime = None
+
+    def print_handler(self, address, *args):
+        return self.osc_sencer(args[0], type(args[0]))
+
+    def osc_receiver_main(self):
         
-        return self.configFile
-
-    def read_parameter(self):
-        self.type_parameter = []
-        self.ran_num_parameter = []
-        self.parameters_dict = {}
-        self.parameters = list(dict.keys(self.configFile))
-        self.len_parameters = len(self.parameters)
-        for i in range(0, self.len_parameters):
-            self.type_parameter.append(0)
-            self.ran_num_parameter.append(0)
-            self.parameters_dict[self.parameters[i]] = i
+        self.dispatcher.map("/avatar/parameters/" + self.avater_parameters, self.print_handler)
         
+    
+    def osc_sencer(self, parameter_value, value_type):
+        if (value_type == bool and parameter_value == True):
+            self.send_sen(self.sentences_list)
+        if (value_type == float and parameter_value == 0):
+            self.send_sen(self.sentences_list)
+        if (value_type == int and parameter_value == 0):
+            self.send_sen(self.sentences_list)
+    
+    def send_sen(self, sen_list):
+        random_num = randint(0, len(sen_list) -1)
+        if self.ran_lasttime == None:
+            self.ran_lasttime = random_num
+        elif self.ran_lasttime == random_num:
+            self.send_sen(sen_list)
+            return
+
+        self.ran_lasttime = random_num
+        self.client.send_message("/chatbox/input", [sen_list[random_num], True])
+        print(sen_list[random_num])
         
-        return self.parameters, self.len_parameters, self.type_parameter,self.ran_num_parameter,self.parameters_dict
+    def get_name(self):
+        return self.avater_parameters
 
-    def read_read_sen(self):
-        self.sen = list(dict.values(self.configFile))
-        return self.sen
 
-    def server_start(self):
-        #启动OSCserver 
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--ip",
-            default="127.0.0.1", help="The ip to listen on")
-        parser.add_argument("--port",
-            type=int, default=9001, help="The port to listen on")
-        args = parser.parse_args()
-        self.server = osc_server.ThreadingOSCUDPServer(
-            (args.ip, args.port), dispatcher)
-        #启动OSclient
-        parser_c = argparse.ArgumentParser()
-        parser_c.add_argument("--ip", default="127.0.0.1",
-            help="The ip of the OSC server")
-        parser_c.add_argument("--port", type=int, default=9000,
-            help="The port the OSC server is listening on")
-        args_c = parser_c.parse_args()
-        self.client = udp_client.SimpleUDPClient(args_c.ip, args_c.port)
+def load_configFile():
+    try:
+        configAdd = f"{os.path.dirname(os.path.realpath(sys.argv[0]))}/config.yml"
+        if not os.path.exists(configAdd):
+            print("---Cannot find config.yml trying to make one---")
+            with open(configAdd, 'w', encoding='utf-8') as configOpen:
+                defaultConfig = """
+#you can set up many sentences and parameter here 
+#!must follow my format! 
+#!When there are punctuation marks or numbers in the sentence, 
+#   you need to add "" at the beginning and end of the sentence!
+
+#parameter(your avatar):
+#- sentences
+#- sentences
+#- "123"
+#- "word,word"
+#- word word word
+#
+
+head_touch: 
+- I'm AFK-ing...
+- I'm AFK-ing......
+                """
+                configOpen.write(defaultConfig)
         
-        return self.server, self.client
-
-    def count_sen(self):
-        self.len_sen_sin = []
-        for i in range(0, self.len_parameters):
-            self.len_sen_sin.append(len(self.sen[i]))
-            sen_sin = self.sen[i]
-            print(self.parameters[i],":")
-            for iin in range(0, self.len_sen_sin[i]):
-                if sen_sin[iin] != None:
-                    print("sentence {} correct".format(iin+1))
-                else:
-                    print("ERROR sentence {} in {} cannot be empty, please cheak the config file.".format(iin+1,self.parameters[i]))
-        print("Serving on {}".format(self.server.server_address))
-        return self.len_sen_sin
-
-    def send_sen_bool(self,num_p,data,Ran_num):
-        parameters = self.parameters[num_p]
-        sen_list = self.sen[num_p]
-        len_sen_sin = len(sen_list)
-        if "/avatar/parameters/{}".format(parameters) in str(data):
-            k = str(data).split(",")
-            l = k[1]
-            if "T" in str(l):
-                outPut_sen = sen_list[Ran_num-1]
-                self.client.send_message("/chatbox/input", [outPut_sen, True])
-                print('prameter({})exported sentence[{}]'.format(parameters,outPut_sen))
-                #产生不相等的随机数
-                
+        with open(configAdd, 'r', encoding='utf-8') as configOpen:
+            configRead = configOpen.read()
+        configFile = yaml.load(configRead, Loader=yaml.SafeLoader)
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
         return None
+
+    return configFile
+
+
+
+
+    return configFile
+
+def check_file(configFile):
+    print(configFile)
+    key_count = 0
+    value_count = 0
+    try:
+        for key in configFile:
+            key_count += 1
+            for value in configFile[key]:
+                value_count += 1
+        
+        print("---Totaly {} parameter and {} sentence loaded---".format(key_count, value_count))
+        return True
+    except:
+        print("ERROR!! sentence cannot be empty, please cheak the config file.")
+        return False
     
-    def ball(self):
-        sen_sin = self.sen[0]
-        if sen_sin[0] == "Who is Jacky?":
-            print("Jacky is the smartest man in the world!!!")
-            
-            self.client.send_message("/chatbox/input", ["Jacky is the smartest man in the world!!!", True])
-        else:
+def send_main(configFile):
+    processers = []
+    processers_thread = []
+    if not check_file(configFile):
+        return
+    client = udp_client.SimpleUDPClient("localhost", 9000)
+    dispatcher = dp.Dispatcher()
+    server = osc_server.ThreadingOSCUDPServer(("localhost", 9001), dispatcher)
+    server_thread = threading.Thread(target=server.serve_forever)
+    server_thread.start()
+    print("Serving on ('127.0.0.1', 9001)")
+    for key in configFile:
+        processers.append(Osc_processer(key, configFile[key], client, dispatcher))
+        
+    for index in range(len(processers)):
+        processers_thread.append(threading.Thread(target=processers[index].osc_receiver_main))
+        processers_thread[index].start()
+        
+    try:
+        while True:
             pass
+    except KeyboardInterrupt:
+        print("Received exit request. Shutting down...")
+        server.shutdown()
 
-    def send_sen_inflo(self,num_p,data,Ran_num):
-        parameters = self.parameters[num_p]
-        sen_list = self.sen[num_p]
-        len_sen_sin = len(sen_list)
-        if "/avatar/parameters/{}".format(parameters) in str(data):
-            dec = pyOSC3.decodeOSC(data)
-            
-            if dec[2] != 0.00:
-                outPut_sen = sen_list[Ran_num-1]
-                self.client.send_message("/chatbox/input", [outPut_sen, True])
-                print('prameter({})exported sentence[{}]'.format(parameters,outPut_sen))
-                #产生不相等的随机数          
-                
-        return None
-    def receive_to_bin(self,time_set):
-        time_now = 0
-        time_start = time.time()
-        while time_now < time_set:
-            data, client_addr = self.server.socket.recvfrom(self.server.max_packet_size)
-            time_now = time.time() - time_start
-
-    def send_main(self):
-        while True:    
-            data, client_addr = self.server.socket.recvfrom(self.server.max_packet_size)
-            print(data)
-            if any(word in str(data) for word in self.parameters):
-            #for word in self.parameters_dict:
-                #if word in str(data):
-                    #i = self.parameters_dict[word]
-                print(data)
-                for i in range(0,self.len_parameters):
-                    
-                    if self.parameters[i] in str(data):        
-                        
-                        
-                        if self.type_parameter[i] == 0:
-                            try:
-                                self.send_sen_inflo(i,data,self.ran_num_parameter[i])
-                                old_Ran_num = self.ran_num_parameter[i]
-                        
-                                while old_Ran_num == self.ran_num_parameter[i] and self.len_sen_sin[i]!= 1:
-                                    self.ran_num_parameter[i] = random.randrange(1, self.len_sen_sin[i]+1)
-                                self.receive_to_bin(2)
-                                
-                            except:
-                                self.type_parameter[i] = 1
-                                self.send_sen_bool(i,data,self.ran_num_parameter[i])
-                        if self.type_parameter[i] == 1:
-                            self.send_sen_bool(i,data,self.ran_num_parameter[i])
-                            old_Ran_num = self.ran_num_parameter[i]
-                            while old_Ran_num == self.ran_num_parameter[i] and self.len_sen_sin[i]!= 1:
-                                self.ran_num_parameter[i] = random.randrange(1, self.len_sen_sin[i]+1)
-                            time.sleep(2)
+if __name__ ==  "__main__":
+    send_main(load_configFile())
     
-    def start(self):
-        self.load_configFile()
-        self.read_parameter()
-        self.read_read_sen()
-        self.server_start()
-        self.count_sen()
-        self.ball()
-        self.send_main()
 
-if __name__ == "__main__":
-    mm = main()
-    mm.start()
