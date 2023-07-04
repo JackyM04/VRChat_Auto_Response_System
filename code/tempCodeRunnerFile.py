@@ -1,2 +1,1 @@
-    mm = main()
-    mm.start()
+    send_main(load_configFile())

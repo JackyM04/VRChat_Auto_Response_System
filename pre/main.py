@@ -18,6 +18,7 @@ class Osc_processer:
         self.ran_lasttime = None
 
     def print_handler(self, address, *args):
+        
         return self.osc_sencer(args[0], type(args[0]))
 
     def osc_receiver_main(self):
@@ -43,7 +44,7 @@ class Osc_processer:
 
         self.ran_lasttime = random_num
         self.client.send_message("/chatbox/input", [sen_list[random_num], True])
-        print(sen_list[random_num])
+        print("sended:", sen_list[random_num])
         
     def get_name(self):
         return self.avater_parameters
